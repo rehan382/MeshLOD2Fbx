@@ -70,7 +70,7 @@ namespace sc.meshlod2fbx.editor
 
                 renderer.sharedMaterials = materials;
 
-                float t = 1f-((float)i / (lodMeshes.Length));
+                float t = 1f-((float)(i+1) / (lodMeshes.Length+1));
                 m_lods[i] = new LOD(t, new Renderer[] { renderer });
             }
             
