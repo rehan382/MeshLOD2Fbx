@@ -2,6 +2,7 @@
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace sc.meshlod2fbx.editor
@@ -19,6 +20,7 @@ namespace sc.meshlod2fbx.editor
         
             //Safeguard against error: The Mesh LOD index (#) must be less than the lodCount value (#)
             lodCount = Mathf.Min(lodCount, meshLOD.lodCount);
+            int subMeshCount = meshLOD.subMeshCount;
             
             //Extract triangles for new individual meshes
             Mesh[] lods = new Mesh[lodCount];
@@ -29,7 +31,6 @@ namespace sc.meshlod2fbx.editor
                 //Copy vertices, uvs, normals, etc...
                 EditorUtility.CopySerialized(meshLOD, lodMesh);
 
-                int subMeshCount = meshLOD.subMeshCount;
                 for (int j = 0; j < subMeshCount; j++)
                 {
                     int[] triangles = meshLOD.GetTriangles(j, i, false);
@@ -50,7 +51,7 @@ namespace sc.meshlod2fbx.editor
             #endif
         }
 
-        public static GameObject CreateObjects(Mesh[] lodMeshes)
+        public static GameObject CreateObjects(Mesh[] lodMeshes, Material[] materials)
         {
             GameObject root = new GameObject();
             
@@ -66,6 +67,8 @@ namespace sc.meshlod2fbx.editor
                 filter.sharedMesh = lodMeshes[i];
                 
                 MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+
+                renderer.sharedMaterials = materials;
 
                 float t = 1f-((float)i / (lodMeshes.Length));
                 m_lods[i] = new LOD(t, new Renderer[] { renderer });
