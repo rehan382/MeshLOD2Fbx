@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace sc.meshlod2fbx.editor
@@ -23,6 +26,7 @@ namespace sc.meshlod2fbx.editor
         public bool recalculateNormals;
 
         private Mesh[] lods = Array.Empty<Mesh>();
+        private Material[] materials = Array.Empty<Material>();
         
         private Vector2 scrollPosition;
         private MeshPreview sourceMeshPreview;
@@ -177,9 +181,28 @@ namespace sc.meshlod2fbx.editor
 
         private void Export()
         {
-            GameObject gameObject = MeshLODExporter.CreateObjects(lods);
+            CreateMaterials();
+            GameObject gameObject = MeshLODExporter.CreateObjects(lods, materials);
             MeshLODExporter.ExportToFBX(gameObject, exportPath);
             Object.DestroyImmediate(gameObject);
+        }
+
+        //Create a material for each submesh, otherwise the FBX exporter discards them
+        private void CreateMaterials()
+        {
+            int submeshCount = lods[0].subMeshCount;
+            
+            //TODO: Get the original mesh's material names. Currently iffy as it requires traversing a maze of reflection hacks
+            
+            Material defaultMaterial = GraphicsSettings.defaultRenderPipeline.defaultMaterial;
+            
+            materials = new Material[submeshCount];
+            for (int j = 0; j < submeshCount; j++)
+            {
+                //Note material needs to be a unique instance, so creating a copy
+                materials[j] = new Material(defaultMaterial);
+                materials[j].name = defaultMaterial.name;
+            }
         }
 
         private void GenerateLODs()
